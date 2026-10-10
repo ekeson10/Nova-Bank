@@ -331,10 +331,6 @@ app.get('/api/admin/stats', adminAuth, (req, res) => {
 // ═══════════════════════════════════════════
 // START SERVER
 // ═══════════════════════════════════════════
-// Serve the Nova-Bank homepage
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`\n🏦 NovaBank running on http://localhost:${PORT}`);
