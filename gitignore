@@ -1,0 +1,5 @@
+node_modules/
+.env
+skrill.db
+skrill.db-wal
+skrill.db-shm
