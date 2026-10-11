@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skrill Business — Sign In</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0a2540, #1a3a5c); padding: 20px; }
+        .login-card { background: white; border-radius: 20px; padding: 48px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .login-card h1 { font-size: 1.8rem; margin-bottom: 8px; text-align: center; }
+        .login-card p { text-align: center; color: #6b7280; margin-bottom: 32px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #6b7280; margin-bottom: 6px; }
+        .form-group input { width: 100%; padding: 12px 16px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem; }
+        .form-group input:focus { outline: none; border-color: #00b4d8; }
+        .btn { width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; border: none; transition: all 0.2s; margin-top: 8px; }
+        .btn-primary { background: #00b4d8; color: white; }
+        .btn-primary:hover { background: #0096c7; }
+        .btn-outline { background: transparent; border: 2px solid #00b4d8; color: #00b4d8; }
+        .btn-outline:hover { background: #00b4d8; color: white; }
+        .divider { text-align: center; margin: 20px 0; color: #6b7280; font-size: 0.85rem; }
+        .error { color: #e74c3c; font-size: 0.9rem; margin-bottom: 12px; text-align: center; display: none; }
+        .error.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1>Welcome back 👋</h1>
+        <p>Sign in to your Skrill Business account</p>
+        <div class="error" id="errorMsg"></div>
+        <div id="loginForm">
+            <div class="form-group">
+                <label>Email or Username</label>
+                <input type="text" id="loginEmail" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="••••••••">
+            </div>
+            <button class="btn btn-primary" onclick="handleLogin()">Sign In</button>
+        </div>
+        <div class="divider">or</div>
+        <div id="registerForm" style="display:none">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="regUsername" placeholder="john_doe">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="regEmail" placeholder="john@email.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="regPassword" placeholder="••••••••">
+            </div>
+            <button class="btn btn-primary" onclick="handleRegister()">Create Account</button>
+        </div>
+        <div class="divider">—</div>
+        <button class="btn btn-outline" id="toggleBtn" onclick="toggleForm()">Create Account</button>
+    </div>
+
+    <script>
+        const API = '';
+        let isLogin = true;
+
+        function toggleForm() {
+            isLogin = !isLogin;
+            document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+            document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
+            document.getElementById('toggleBtn').textContent = isLogin ? 'Create Account' : 'Back to Login';
+            document.getElementById('errorMsg').classList.remove('show');
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.classList.add('show');
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            if (!email || !password) return showError('Fill in all fields');
+            try {
+                const res = await fetch(`${API}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) return showError(data.error);
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                window.location.href = data.user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+            } catch (err) {
+                showError('Network error: ' + err.message);
+            }
+        }
+
+        async function handleRegister() {
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            if (!username || !email || !password) return showError('Fill in all fields');
+            if (password.length < 6) return showError('Password must be at least 6 characters');
+            try {
+                const res = await fetch(`${API}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) return showError(data.error);
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                window.location.href = 'dashboard.html';
+            } catch (err) {
+                showError('Network error: ' + err.message);
+            }
+        }
+
+        // Auto-redirect if already logged in
+        if (localStorage.getItem('token')) {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) window.location.href = user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+        }
+    </script>
+</body>
+</html>
